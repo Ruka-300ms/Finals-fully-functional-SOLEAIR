@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "name": "Puma Speedcut",
+    "brand": "Puma",
+    "price": 5899,
+    "category": "men",
+    "quantity": 10,
+    "sizes": ["7", "8", "9", "10", "11"],
+    "description": "The Puma Speedcut offers exceptional comfort and traction for your daily runs. Lightweight and breathable with durable soles.",
+    "image": "/img/products-imgs/puma.png"
+  },
+  {
+    "id": 2,
+    "name": "Travis Scott Low Fragments",
+    "brand": "Nike",
+    "price": 67899,
+    "category": "men",
+    "quantity": 3,
+    "sizes": ["7", "8", "9", "10", "11"],
+    "description": "A premium limited-edition sneaker by Nike and Travis Scott featuring a blend of classic and modern design with top-tier materials.",
+    "image": "/img/products-imgs/nike.png"
+  },
+  {
+    "id": 3,
+    "name": "Adidas Samba",
+    "brand": "Adidas",
+    "price": 8899,
+    "category": "women",
+    "quantity": 11,
+    "sizes": ["5", "6", "7", "8", "9"],
+    "description": "The iconic Adidas Samba returns with a modern twist, perfect for casual streetwear or everyday comfort.",
+    "image": "/img/products-imgs/adidas.png"
+  },
+  {
+    "id": 4,
+    "name": "Converse Allstar Highcut",
+    "brand": "Converse",
+    "price": 3899,
+    "category": "kids",
+    "quantity": 23,
+    "sizes": ["2", "3", "4", "5"],
+    "description": "Classic Converse style with high-cut design for maximum ankle support. Durable canvas upper and rubber sole for active kids.",
+    "image": "/img/products-imgs/converse.png"
+  },
+  {
+    "id": 5,
+    "name": "Adidas Ultraboost 23",
+    "brand": "Adidas",
+    "price": 10999,
+    "discount": 25,
+    "category": "men",
+    "quantity": 4,
+    "sizes": ["7", "8", "9", "10", "11"],
+    "description": "The Ultraboost 23 provides the ultimate in cushioning and energy return. Built for performance and comfort during long runs.",
+    "image": "/img/products-imgs/ultraboost.png"
+  },
+  {
+    "id": 6,
+    "name": "Nike Air Force 1 '07",
+    "brand": "Nike",
+    "price": 6499,
+    "category": "men",
+    "quantity": 23,
+    "sizes": ["7", "8", "9", "10", "11"],
+    "description": "An all-time classic. The Nike Air Force 1 '07 blends timeless design with modern comfort for everyday wear.",
+    "image": "/img/products-imgs/nikeAF.png"
+  },
+  {
+    "id": 7,
+    "name": "Adidas Superstar Classic",
+    "brand": "Adidas",
+    "price": 5299,
+    "discount": 10,
+    "category": "women",
+    "quantity": 1,
+    "sizes": ["5", "6", "7", "8", "9"],
+    "description": "A true legend in the sneaker world. The Superstar Classic delivers retro looks with a comfortable modern fit.",
+    "image": "/img/products-imgs/adidasAS.png"
+  },
+  {
+    "id": 8,
+    "name": "Puma RS-X3",
+    "brand": "Puma",
+    "price": 5699,
+    "category": "men",
+    "quantity": 34,
+    "sizes": ["7", "8", "9", "10", "11"],
+    "description": "A bold, chunky silhouette inspired by retro running shoes. The RS-X3 combines comfort and fashion for everyday wear.",
+    "image": "/img/products-imgs/pumaRS.png"
+  }
+]

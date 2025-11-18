@@ -1,0 +1,112 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.account-body {
+  background: #fff;
+  color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.account-container {
+  display: flex;
+  width: 100%;
+  max-width: 1800px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 40px auto;
+  max-width: 80%;
+}
+
+/* LEFT PROFILE SECTION */
+.profile-section {
+  background: #000;
+  color: #fff;
+  flex: 1.2;
+  padding: 60px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-radius: 16px 0 0 16px;
+}
+
+.profile-section img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  margin-bottom: 20px;
+}
+
+.profile-section .role {
+  background: #fff;
+  color: #000;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+/* RIGHT FUNCTION SECTION */
+.functions-section {
+  flex: 1.8;
+  padding: 50px 60px;
+  background: #fff;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+}
+
+.function-btn {
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 20px 100px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.function-btn i {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.function-btn:hover {
+  background: #000;
+  color: #fff;
+  transform: translateY(-5px);
+}
+
+
+@media (max-width: 900px) {
+  .account-container {
+    flex-direction: column;
+  }
+
+  .profile-section {
+    padding: 40px 20px;
+  }
+
+  .functions-section {
+    padding: 40px 20px;
+  }
+}

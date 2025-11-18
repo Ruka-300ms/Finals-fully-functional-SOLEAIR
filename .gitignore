@@ -1,0 +1,23 @@
+# Dependencies
+/node_modules
+/vendor
+
+# Laravel Specific Ignored Files
+.env
+.env.testing
+/storage/*.key
+/public/hot
+/public/storage
+/bootstrap/cache/*.php
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
+
+# Frontend Build Directory (if using React build)
+/frontend/build
+
+# Ignore node_modules in the root and in subdirectories
+/node_modules
+/backend/vendor
+/frontend/node_modules/  

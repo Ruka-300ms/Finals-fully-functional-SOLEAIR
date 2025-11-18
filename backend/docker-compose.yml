@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-backend-final
+    ports:
+      - "8083:80"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=laravel
+      - DB_USERNAME=laravel
+      - DB_PASSWORD=secret
+
+  db:
+    image: mysql:8.0
+    container_name: ecommerce-db-final
+    restart: always
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3307"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ecommerce-pma-final
+    restart: always
+    ports:
+      - "8084:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=laravel
+      - PMA_PASSWORD=secret
+    depends_on:
+      - db
+
+volumes:
+  db_data:

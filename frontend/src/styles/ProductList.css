@@ -1,0 +1,157 @@
+/* 🏷️ Container */
+.product-list-container {
+  padding: 120px 40px 60px; /* ⬅️ Added extra top padding */
+  background: #f5f6fa;
+  min-height: 100vh;
+  text-align: center;
+  
+}
+
+
+/* 🧩 Section Title */
+.product-list-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 35px;
+  text-transform: none;
+}
+
+/* 🔘 Category Buttons */
+.category-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+}
+
+.category-buttons button {
+  background: #fff;
+  border: none;
+  padding: 15px 35px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.category-buttons button:hover {
+  transform: translateY(-3px);
+}
+
+.category-buttons .active {
+  background: #000;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* 🛍️ Product Grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 250px));
+  justify-content: center; /* centers the grid content horizontally */
+  gap: 35px;
+  padding: 0 20px;
+  
+  margin: 0 auto; /* centers the entire grid container */
+}
+
+
+/* 📦 Product Card */
+.product-card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.15);
+}
+
+/* 🖼️ Image */
+.image-container {
+  position: relative;
+}
+
+.product-image {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  background-color: #f9f9f9;
+  padding: 15px;
+}
+
+/* 💸 Discount Tag */
+.discount-tag {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: #ff4444;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* 📋 Product Info */
+.product-info {
+  padding: 15px 20px 25px;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.product-brand {
+  color: #777;
+  margin: 3px 0 10px;
+  font-size: 0.9rem;
+}
+
+.product-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.old-price {
+  font-size: 0.85rem;
+  color: #888;
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+
+.product-quantity {
+  font-size: 0.85rem;
+  color: #444;
+  margin-top: 6px;
+}
+
+.quantity-value {
+  font-weight: 600;
+}
+
+/* 📱 Responsive */
+@media (max-width: 600px) {
+  .product-list-title {
+    font-size: 1.8rem;
+  }
+
+  .category-buttons {
+    gap: 12px;
+  }
+
+  .category-buttons button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}

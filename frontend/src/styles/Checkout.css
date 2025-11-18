@@ -1,0 +1,252 @@
+.checkout-page {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 60px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+.checkout-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.checkout-header h2 {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.back-btn:hover {
+  color: #007bff;
+}
+
+.checkout-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.checkout-form {
+  flex: 1;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.checkout-form h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #222;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.place-order-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #111, #444);
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.place-order-btn:hover {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+/* ORDER SUMMARY */
+.order-summary {
+  width: 35%;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  align-self: flex-start;
+}
+
+.summary-item {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.summary-item img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f1f1f1;
+}
+
+.summary-info {
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-top: 15px;
+}
+
+.checkout-success {
+  text-align: center;
+  padding: 80px;
+}
+
+.checkout-success h2 {
+  color: #007bff;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.checkout-success button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.checkout-success button:hover {
+  background: #0056b3;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .checkout-content {
+    flex-direction: column;
+  }
+  .order-summary {
+    width: 100%;
+  }
+}
+
+.checkout-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  animation: fadeIn 0.8s ease-in;
+}
+
+.success-card {
+  background: #fff;
+  padding: 40px 60px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+  animation: slideUp 0.6s ease-out;
+}
+
+.success-icon {
+  font-size: 60px;
+  color: #16a34a;
+  margin-bottom: 15px;
+}
+
+.success-card h2 {
+  font-size: 26px;
+  margin-bottom: 10px;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.success-card p {
+  color: #374151;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.order-details {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 20px;
+  text-align: left;
+  font-size: 15px;
+  color: #374151;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.success-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.continue-btn,
+.home-btn {
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #111;
+  color: #fff;
+}
+
+.continue-btn:hover,
+.home-btn:hover {
+  background: #333;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
