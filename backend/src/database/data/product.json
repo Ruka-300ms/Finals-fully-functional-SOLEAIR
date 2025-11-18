@@ -88,5 +88,16 @@
     "sizes": ["7", "8", "9", "10", "11"],
     "description": "A bold, chunky silhouette inspired by retro running shoes. The RS-X3 combines comfort and fashion for everyday wear.",
     "image": "/img/products-imgs/pumaRS.png"
-  }
+  },
+  {
+    "id": 9,
+    "name": "Nike Air Max 270",
+    "brand": "Nike",
+    "price": 6299,
+    "category": "men",
+    "quantity": 28,
+    "sizes": ["7", "8", "9", "10", "11", "12"],
+    "description": "The Nike Air Max 270 features a large-volume Max Air unit for all-day cushioning and a sleek, sporty look perfect for everyday wear.",
+    "image": "/img/products-imgs/airmax270.png"
+}
 ]
