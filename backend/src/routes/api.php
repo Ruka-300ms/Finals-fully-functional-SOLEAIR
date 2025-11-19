@@ -1,22 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route; // <-- ADDED: Necessary facade import
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| These routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group.
-|
-*/
+// Public product endpoints
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
 
-// Correct syntax for defining a GET route that maps to a Controller method:
-Route::get('/test-products', [ProductController::class, 'index']);
+// Cart endpoints - prefer to protect with auth middleware.
+// If you use sanctum or passport, replace 'auth:sanctum' with your guard.
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
-// Optional: You might also have a test route for the currently authenticated user
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+    // Checkout: convert cart -> order
+    Route::post('/checkout', [CheckoutController::class, 'checkout']);
+});

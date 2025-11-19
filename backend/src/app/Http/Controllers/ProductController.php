@@ -7,38 +7,35 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Product::all();
+        $query = Product::query()->where('is_active', true);
+
+        if ($q = $request->query('q')) {
+            $query->where('name', 'like', "%{$q}%")
+                  ->orWhere('description', 'like', "%{$q}%");
+        }
+
+        // optional pagination params, default 12 per page for frontend convenience
+        $perPage = (int) $request->query('per_page', 12);
+
+        // If the client requests page-based results:
+        if ($request->has('page')) {
+            return response()->json($query->paginate($perPage));
+        }
+
+        // otherwise return full collection (careful on large lists)
+        return response()->json($query->get());
     }
 
-    public function store(Request $request)
+    public function show($id)
     {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'stock' => 'integer'
-        ]);
+        $product = Product::find($id);
 
-        return Product::create($data);
-    }
+        if (! $product || ! $product->is_active) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
 
-    public function show(Product $product)
-    {
-        return $product;
-    }
-
-    public function update(Request $request, Product $product)
-    {
-        $product->update($request->all());
-        return $product;
-    }
-
-    public function destroy(Product $product)
-    {
-        $product->delete();
-        return response()->noContent();
+        return response()->json($product);
     }
 }
-
