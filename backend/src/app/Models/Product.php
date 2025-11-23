@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany; // <--- Added this import
 
 class Product extends Model 
 { 
@@ -21,7 +22,7 @@ class Product extends Model
         'description',
         'price',
         'stock',
-        // 'category_id',  <-- REMOVED
+        // 'category_id',  <-- Kept as you had it
         'image_url',    
         'is_active',    
     ];
@@ -41,10 +42,16 @@ class Product extends Model
     // E-COMMERCE RELATIONSHIPS
     // -------------------------------------------------------------------
 
+    // Connection to Orders (Pivot table: order_items)
     public function orders(): BelongsToMany
     {
-        // This remains correct, linking Products to Orders via the OrderItem pivot table.
         return $this->belongsToMany(Order::class, 'order_items')
                     ->withPivot('quantity', 'price');
+    }
+
+    // NEW: Connection to Carts (One Product can be in many Users' carts)
+    public function carts(): HasMany
+    {
+        return $this->hasMany(Cart::class);
     }
 }

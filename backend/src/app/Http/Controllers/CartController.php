@@ -1,110 +1,82 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    // GET /cart
-    public function index(Request $request)
+    // READ: View User's Cart
+    public function index()
     {
-        $userId = $request->user()->id; // auth middleware ensures user exists
-        $items = Cart::with('product')
-                     ->where('user_id', $userId)
-                     ->get();
-
-        return response()->json($items, 200);
+        // Assuming user is logged in. If no auth yet, replace Auth::id() with a manual user_id
+        $cartItems = Cart::where('user_id', Auth::id())->with('product')->get();
+        return response()->json($cartItems, 200);
     }
 
-    // POST /cart
+    // CREATE: Add to Cart
     public function store(Request $request)
     {
-        $userId = $request->user()->id;
-
-        $data = $request->validate([
+        $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1'
         ]);
 
-        $product = Product::find($data['product_id']);
+        $userId = Auth::id(); 
 
-        // Check stock
-        if ($product->stock < $data['quantity']) {
-            return response()->json([
-                'message' => 'Not enough stock available',
-                'available_stock' => $product->stock
-            ], 422);
-        }
-
-        // If cart entry exists, increment but don't exceed stock
+        // Check if item already exists in cart for this user
         $cartItem = Cart::where('user_id', $userId)
-                        ->where('product_id', $data['product_id'])
+                        ->where('product_id', $request->product_id)
                         ->first();
 
         if ($cartItem) {
-            $newQuantity = $cartItem->quantity + $data['quantity'];
-            if ($newQuantity > $product->stock) {
-                return response()->json([
-                    'message' => 'Cannot add more than available stock',
-                    'available_stock' => $product->stock
-                ], 422);
-            }
-            $cartItem->quantity = $newQuantity;
+            // If exists, just increment quantity
+            $cartItem->quantity += $request->quantity;
             $cartItem->save();
         } else {
+            // Create new entry
             $cartItem = Cart::create([
                 'user_id' => $userId,
-                'product_id' => $data['product_id'],
-                'quantity' => $data['quantity'],
+                'product_id' => $request->product_id,
+                'quantity' => $request->quantity
             ]);
         }
 
-        return response()->json(['message' => 'Item added to cart', 'data' => $cartItem->load('product')], 201);
+        return response()->json(['message' => 'Added to cart', 'data' => $cartItem], 201);
     }
 
-    // PUT /cart/{id}
+    // UPDATE: Change Quantity
     public function update(Request $request, $id)
     {
-        $userId = $request->user()->id;
-
-        $data = $request->validate([
+        $request->validate([
             'quantity' => 'required|integer|min:1'
         ]);
 
-        $cartItem = Cart::where('id', $id)->where('user_id', $userId)->first();
+        $cartItem = Cart::where('user_id', Auth::id())->where('id', $id)->first();
 
-        if (! $cartItem) {
-            return response()->json(['message' => 'Cart item not found'], 404);
+        if (!$cartItem) {
+            return response()->json(['message' => 'Item not found'], 404);
         }
 
-        $product = $cartItem->product;
-
-        if ($data['quantity'] > $product->stock) {
-            return response()->json(['message' => 'Quantity exceeds available stock', 'available_stock' => $product->stock], 422);
-        }
-
-        $cartItem->quantity = $data['quantity'];
+        $cartItem->quantity = $request->quantity;
         $cartItem->save();
 
-        return response()->json(['message' => 'Cart updated', 'data' => $cartItem->load('product')], 200);
+        return response()->json(['message' => 'Cart updated', 'data' => $cartItem], 200);
     }
 
-    // DELETE /cart/{id}
-    public function destroy(Request $request, $id)
+    // DELETE: Remove Item
+    public function destroy($id)
     {
-        $userId = $request->user()->id;
+        $cartItem = Cart::where('user_id', Auth::id())->where('id', $id)->first();
 
-        $cartItem = Cart::where('id', $id)->where('user_id', $userId)->first();
-
-        if (! $cartItem) {
-            return response()->json(['message' => 'Cart item not found'], 404);
+        if (!$cartItem) {
+            return response()->json(['message' => 'Item not found'], 404);
         }
 
         $cartItem->delete();
 
-        return response()->json(['message' => 'Cart item removed'], 200);
+        return response()->json(['message' => 'Item removed from cart'], 200);
     }
 }
