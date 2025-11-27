@@ -11,10 +11,10 @@ const Login = () => {
     e.preventDefault();
 
     // Dummy credentials
-    if (email === "admin123" && password === "admin123") {
+    if (email === "admin" && password === "admin123") {
       navigate("/admin");
     } else {
-      navigate("/");
+      navigate("/home");
     }
   };
 

@@ -1,23 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import productsData from "../data/products.json";
 import { useCart } from "../components/Cart/CartContext";
 import "../styles/ProductDetails.css";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import productsJson from "../data/products.json";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  const productList = Array.isArray(productsData) ? productsData : [];
-  const index = productList.findIndex((p) => p.id === parseInt(id, 10));
-  const product = index >= 0 ? productList[index] : null;
-
+  const [productList, setProductList] = useState([]);
+  const [product, setProduct] = useState(null);
   const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState(""); // color string like "black"
+  const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showAdded, setShowAdded] = useState(false);
+
+  // load product list from localStorage or fallback to bundled JSON
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("products"));
+    const base = stored && stored.length ? stored : productsJson;
+    setProductList(base);
+
+    const found = base.find((p) => Number(p.id) === Number(id));
+    setProduct(found || null);
+    // reset selection when id changes
+    setSelectedSize("");
+    setSelectedColor("");
+    setQuantity(1);
+  }, [id]);
 
   if (!product) {
     return (
@@ -30,36 +42,62 @@ const ProductDetails = () => {
     );
   }
 
-  const sizes = product.sizes && product.sizes.length ? product.sizes : ["6","7","8","9","10","11"];
-  // color options - you can change or derive from product if you store colors in products.json
+  const sizes = product.sizes && product.sizes.length ? product.sizes : ["6", "7", "8", "9", "10", "11"];
   const colors = ["black", "white", "red", "blue", "green"];
+
+  const availableStock = Number(product.quantity ?? 0);
 
   const handleAddToCart = () => {
     if (!selectedSize) {
       alert("Please choose a size before adding to cart.");
       return;
     }
-    // attach color and quantity
-    addToCart({ ...product, size: selectedSize, color: selectedColor || "Default", quantity });
+    if (quantity > availableStock) {
+      alert(`Only ${availableStock} left in stock. Please reduce quantity.`);
+      return;
+    }
+
+    addToCart({
+      ...product,
+      size: selectedSize,
+      color: selectedColor || "Default",
+      quantity,
+    });
+
     setShowAdded(true);
-    setTimeout(() => setShowAdded(false), 1700);
+    setTimeout(() => setShowAdded(false), 1400);
   };
 
-  const handleProceed = () => {
+  const handleCheckout = () => {
     if (!selectedSize) {
       alert("Please choose a size before proceeding to checkout.");
       return;
     }
-    addToCart({ ...product, size: selectedSize, color: selectedColor || "Default", quantity });
+    if (quantity > availableStock) {
+      alert(`Only ${availableStock} left in stock. Please reduce quantity.`);
+      return;
+    }
+
+    addToCart({
+      ...product,
+      size: selectedSize,
+      color: selectedColor || "Default",
+      quantity,
+    });
+
     navigate("/checkout");
   };
 
   const goPrev = () => {
+    const index = productList.findIndex((p) => Number(p.id) === Number(product.id));
+    if (index === -1) return;
     const prevIndex = (index - 1 + productList.length) % productList.length;
     navigate(`/product/${productList[prevIndex].id}`);
   };
 
   const goNext = () => {
+    const index = productList.findIndex((p) => Number(p.id) === Number(product.id));
+    if (index === -1) return;
     const nextIndex = (index + 1) % productList.length;
     navigate(`/product/${productList[nextIndex].id}`);
   };
@@ -71,7 +109,6 @@ const ProductDetails = () => {
       </button>
 
       <div className="pd-card">
-        {/* Left arrow outside card */}
         <button className="pd-arrow left" onClick={goPrev} aria-label="Previous product">
           <FaChevronLeft />
         </button>
@@ -103,7 +140,6 @@ const ProductDetails = () => {
 
           <p className="pd-desc">{product.description}</p>
 
-          {/* Color picker */}
           <div className="pd-section">
             <div className="pd-section-title">Color</div>
             <div className="pd-colors">
@@ -118,14 +154,13 @@ const ProductDetails = () => {
             </div>
           </div>
 
-          {/* Size picker */}
           <div className="pd-section">
             <div className="pd-section-title">Size</div>
             <div className="pd-sizes">
               {sizes.map((s) => (
                 <button
                   key={s}
-                  className={`pd-size ${selectedSize === s ? "selected" : ""}`}
+                  className={selectedSize === s ? "pd-size selected" : "pd-size"}
                   onClick={() => setSelectedSize(s)}
                 >
                   {s}
@@ -134,30 +169,41 @@ const ProductDetails = () => {
             </div>
           </div>
 
-          {/* Quantity */}
           <div className="pd-section quantity-wrap">
             <div className="pd-section-title">Quantity</div>
             <div className="pd-qty">
               <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
               <span>{quantity}</span>
-              <button onClick={() => setQuantity((q) => q + 1)}>+</button>
+              <button onClick={() => setQuantity((q) => Math.min(availableStock, q + 1))}>+</button>
+            </div>
+            <div style={{ marginTop: 8, color: availableStock === 0 ? "#d33" : "#666" }}>
+              {availableStock === 0 ? "Out of stock" : `Available: ${availableStock}`}
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="pd-actions">
-            <button className="pd-btn pd-add" onClick={handleAddToCart}>
+            <button
+              className="pd-btn pd-add"
+              onClick={handleAddToCart}
+              disabled={availableStock === 0}
+              style={availableStock === 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+            >
               Add to Cart
             </button>
-            <button className="pd-btn pd-checkout" onClick={handleProceed}>
-              Proceed to Checkout →
+
+            <button
+              className="pd-btn pd-checkout"
+              onClick={handleCheckout}
+              disabled={availableStock === 0}
+              style={availableStock === 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+            >
+              Proceed to Checkout
             </button>
           </div>
 
-          {showAdded && <div className="pd-toast">✅ Added to cart</div>}
+          {showAdded && <div className="pd-toast">Added to cart</div>}
         </div>
 
-        {/* Right arrow outside card */}
         <button className="pd-arrow right" onClick={goNext} aria-label="Next product">
           <FaChevronRight />
         </button>

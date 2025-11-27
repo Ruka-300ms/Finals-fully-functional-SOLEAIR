@@ -1,4 +1,12 @@
+/* Fix navbar overlapping */
 .checkout-page {
+  padding-top: 120px; /* adjust depending on your navbar height */
+}
+
+
+
+.checkout-page {
+    padding-top: 80px;
   display: flex;
   flex-direction: column;
   padding: 40px 60px;
@@ -8,6 +16,7 @@
 }
 
 .checkout-header {
+   margin-top: 20px;
   display: flex;
   align-items: center;
   gap: 15px;

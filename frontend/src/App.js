@@ -5,13 +5,11 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import Navbar from "./pages/Navbar";
 import Homepage from "./pages/Homepage";
 import About from "./pages/About";
-import Account from "./pages/AccountPage";
+import AccountPage from "./pages/AccountPage";
 import Checkout from "./pages/Checkout";
 import Footer from "./components/Footer/Footer";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
-import AccountPage from "./pages/AccountPage";
-
 
 // Product & Cart pages
 import ProductList from "./pages/ProductList";
@@ -24,29 +22,35 @@ import "./App.css";
 function AppContent() {
   const location = useLocation();
 
-  const hideNavAndFooter = location.pathname === "/login" || location.pathname === "/admin";
-  
-  const showFooter = location.pathname === "/" || location.pathname === "/about";
+  // Hide Navbar & Footer on login and admin pages
+  const hideNavAndFooter =
+    location.pathname === "/login" || location.pathname === "/admin";
+
+  // Footer only on homepage and about page
+  const showFooter =
+    location.pathname === "/" || location.pathname === "/about";
 
   return (
     <>
-      {/*Hide Navbar on /login */}
+      {/* Hide Navbar on /login and /admin */}
       {!hideNavAndFooter && <Navbar />}
 
       <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/products" element={<ProductList />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/account" element={<AccountPage />} />
+        {/* Homepage is now the real "/" page */}
+        <Route path="/" element={<Homepage />} />
+
+        <Route path="/home" element={<Homepage />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/products" element={<ProductList />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
 
-      {/*Hide footer on /login*/}
+      {/* Footer only shows on homepage and about */}
       {!hideNavAndFooter && showFooter && <Footer />}
     </>
   );

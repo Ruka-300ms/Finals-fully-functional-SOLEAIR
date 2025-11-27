@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AccountPage.css";
 
 const AccountPage = () => {
   const navigate = useNavigate();
 
-  // initial profile info
   const [profile, setProfile] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
@@ -17,6 +16,14 @@ const AccountPage = () => {
   });
 
   const [editing, setEditing] = useState(false);
+  const [activeSection, setActiveSection] = useState("none");
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    // Load previous orders from localStorage (cart history)
+    const orderHistory = JSON.parse(localStorage.getItem("orderHistory")) || [];
+    setOrders(orderHistory);
+  }, []);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -33,97 +40,151 @@ const AccountPage = () => {
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
-      // You can clear stored session data here if you use localStorage
-      // localStorage.removeItem("user");
       navigate("/login");
     }
   };
 
+  // SECTION CONTENT RENDERER
+  const renderSection = () => {
+    switch (activeSection) {
+   case "orders":
   return (
-    <div className = "account-body">
-    <div className="account-container">
-      {/* LEFT SIDE: USER PROFILE */}
-      <div className="profile-section">
-        <img src={profile.image} alt="User Profile" />
-        <h2>{profile.name}</h2>
-        <p>{profile.email}</p>
-        <p>
-          <i className="fa-solid fa-phone"></i> {profile.phone}
-        </p>
-        <p>
-          <i className="fa-solid fa-house"></i> {profile.address}
-        </p>
-        <p>Joined: {profile.joined}</p>
-        <div className="role">{profile.role}</div>
+    <div className="section-box">
+      <h2>Your Orders</h2>
 
-        {!editing && (
-          <button className="edit-btn" onClick={() => setEditing(true)}>
-            Edit Profile
-          </button>
-        )}
+      {orders.length === 0 ? (
+        <p>You have no orders yet.</p>
+      ) : (
+        orders.map((item, index) => (
+          <div key={index} className="order-card">
+            <img src={item.image} alt={item.name} />
 
-        {editing && (
-          <div className="edit-form">
-            <input
-              type="text"
-              id="name"
-              value={profile.name}
-              placeholder="Full Name"
-              onChange={handleChange}
-            />
-            <input
-              type="email"
-              id="email"
-              value={profile.email}
-              placeholder="Email"
-              onChange={handleChange}
-            />
-            <input
-              type="text"
-              id="phone"
-              value={profile.phone}
-              placeholder="Phone Number"
-              onChange={handleChange}
-            />
-            <input
-              type="text"
-              id="address"
-              value={profile.address}
-              placeholder="Address"
-              onChange={handleChange}
-            />
-            <button onClick={saveProfile}>Save</button>
+            <div className="order-info">
+              <h3>{item.name}</h3>
+              <p>Size: {item.size}</p>
+              <p>Color: {item.color}</p>
+              <p>Quantity: {item.quantity}</p>
+              <p className="order-total">
+                Total: ₱{(item.price * item.quantity).toLocaleString()}
+              </p>
+            </div>
           </div>
-        )}
-      </div>
+        ))
+      )}
+    </div>
+  );
 
-      {/* RIGHT SIDE: FUNCTION BUTTONS */}
-      <div className="functions-section">
-        <h1>Welcome back, {profile.name.split(" ")[0]}!</h1>
-        <div className="button-grid">
-          <div className="function-btn">
-            <i className="fa-solid fa-box"></i>
-            <p>Orders</p>
+
+      case "billing":
+        return (
+          <div className="section-box">
+            <h2>Billing Address</h2>
+            <p>{profile.name}</p>
+            <p>{profile.address}</p>
+            <p>{profile.phone}</p>
           </div>
-          <div className="function-btn">
-            <i className="fa-solid fa-file-invoice"></i>
-            <p>Billing Address</p>
+        );
+
+      case "shipping":
+        return (
+          <div className="section-box">
+            <h2>Shipping Address</h2>
+            <p>{profile.name}</p>
+            <p>{profile.address}</p>
           </div>
-          <div className="function-btn">
-            <i className="fa-solid fa-truck"></i>
-            <p>Shipping Address</p>
+        );
+
+      case "password":
+        return (
+          <div className="section-box">
+            <h2>Change Password</h2>
+            <input type="password" placeholder="Current Password" />
+            <input type="password" placeholder="New Password" />
+            <input type="password" placeholder="Confirm Password" />
+            <button className="save-btn">Update Password</button>
           </div>
-          <div className="function-btn">
-            <i className="fa-solid fa-lock"></i>
-            <p>Change Password</p>
+        );
+
+      default:
+        return (
+          <div className="section-box">
+            <h2>Select an option to view details</h2>
           </div>
-          <div className="function-btn" onClick={handleLogout}>
-            <i className="fa-solid fa-right-from-bracket"></i>
-            <p>Logout</p>
+        );
+    }
+  };
+
+  return (
+    <div className="account-body">
+      <div className="account-container">
+
+        {/* LEFT PANEL */}
+        <div className="profile-section">
+          <img src={profile.image} alt="User Profile" />
+          <h2>{profile.name}</h2>
+          <p>{profile.email}</p>
+          <p><i className="fa-solid fa-phone"></i> {profile.phone}</p>
+          <p><i className="fa-solid fa-house"></i> {profile.address}</p>
+          <p>Joined: {profile.joined}</p>
+          <div className="role">{profile.role}</div>
+
+          {!editing && (
+            <button className="edit-btn" onClick={() => setEditing(true)}>
+              Edit Profile
+            </button>
+          )}
+
+          {editing && (
+            <div className="edit-form">
+              <input id="name" value={profile.name} onChange={handleChange} />
+              <input id="email" value={profile.email} onChange={handleChange} />
+              <input id="phone" value={profile.phone} onChange={handleChange} />
+              <input
+                id="address"
+                value={profile.address}
+                onChange={handleChange}
+              />
+              <button onClick={saveProfile}>Save</button>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="functions-section">
+
+          <h1>Welcome back, {profile.name.split(" ")[0]}!</h1>
+
+          <div className="button-grid">
+            <div className="function-btn" onClick={() => setActiveSection("orders")}>
+              <i className="fa-solid fa-box"></i>
+              <p>Orders</p>
+            </div>
+
+            <div className="function-btn" onClick={() => setActiveSection("billing")}>
+              <i className="fa-solid fa-file-invoice"></i>
+              <p>Billing Address</p>
+            </div>
+
+            <div className="function-btn" onClick={() => setActiveSection("shipping")}>
+              <i className="fa-solid fa-truck"></i>
+              <p>Shipping Address</p>
+            </div>
+
+            <div className="function-btn" onClick={() => setActiveSection("password")}>
+              <i className="fa-solid fa-lock"></i>
+              <p>Change Password</p>
+            </div>
+
+            <div className="function-btn" onClick={handleLogout}>
+              <i className="fa-solid fa-right-from-bracket"></i>
+              <p>Logout</p>
+            </div>
           </div>
+
+          {/* Dynamic Section Content */}
+          {renderSection()}
         </div>
       </div>
-    </div>
     </div>
   );
 };

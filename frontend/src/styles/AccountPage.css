@@ -110,3 +110,85 @@
     padding: 40px 20px;
   }
 }
+
+/* ------------------------------- */
+/*       ORDERS SECTION STYLES     */
+/* ------------------------------- */
+
+.section-box {
+  margin-top: 35px;
+  padding: 25px;
+  border: 2px solid #000;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.section-box h2 {
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+/* Order Card Wrapper */
+.order-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #000;
+  margin-bottom: 18px;
+  transition: 0.3s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-3px);
+  background: #f0f0f0;
+}
+
+/* Product Image */
+.order-card img {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #fff;
+  padding: 10px;
+  border: 2px solid #000;
+}
+
+/* Order Info Layout */
+.order-info {
+  flex: 1;
+}
+
+.order-info h3 {
+  font-size: 22px;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.order-info p {
+  font-size: 16px;
+  margin: 3px 0;
+}
+
+/* Total Price */
+.order-total {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .order-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .order-card img {
+    width: 150px;
+    height: 150px;
+  }
+}

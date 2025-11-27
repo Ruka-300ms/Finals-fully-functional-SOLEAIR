@@ -16,10 +16,17 @@ const AdminDashboard = () => {
     image: ""
   });
 
-  // Load from JSON
-  useEffect(() => {
+
+// Load products from localStorage or JSON
+useEffect(() => {
+  const storedProducts = localStorage.getItem("products");
+  if (storedProducts) {
+    setProducts(JSON.parse(storedProducts));
+  } else {
     setProducts(productsData);
-  }, []);
+  }
+}, []);
+
 
   // Handle input change
   const handleChange = (e) => {
