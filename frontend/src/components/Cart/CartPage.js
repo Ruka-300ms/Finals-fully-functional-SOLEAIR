@@ -7,11 +7,11 @@ const CartPage = () => {
   const { cartItems, removeFromCart, clearCart, updateQuantity, totalPrice } = useCart();
   const navigate = useNavigate();
 
-  const handleQuantityChange = (id, delta) => {
-    const item = cartItems.find((item) => item.id === id);
+  const handleQuantityChange = (itemKey, delta) => {
+    const item = cartItems.find((i) => i.key === itemKey);
     if (item) {
       const newQty = Math.max(1, item.quantity + delta);
-      updateQuantity(id, newQty);
+      updateQuantity(itemKey, newQty);
     }
   };
 
@@ -35,7 +35,7 @@ const CartPage = () => {
         <div className="cart-layout">
           <div className="cart-items">
             {cartItems.map((item) => (
-              <div className="cart-item" key={item.id}>
+              <div className="cart-item" key={item.key}>
                 <img src={item.image} alt={item.name} className="cart-item-img" />
                 <div className="cart-item-info">
                   <h2>{item.name}</h2>
@@ -43,9 +43,9 @@ const CartPage = () => {
                   <p>Color: {item.color}</p>
 
                   <div className="quantity-controls">
-                    <button onClick={() => handleQuantityChange(item.id, -1)}>−</button>
+                    <button onClick={() => handleQuantityChange(item.key, -1)}>−</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => handleQuantityChange(item.id, 1)}>+</button>
+                    <button onClick={() => handleQuantityChange(item.key, 1)}>+</button>
                   </div>
 
                   <p className="cart-item-price">
@@ -54,7 +54,7 @@ const CartPage = () => {
 
                   <button
                     className="remove-btn"
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => removeFromCart(item.key)}
                   >
                     Remove
                   </button>
@@ -68,18 +68,16 @@ const CartPage = () => {
             <div className="summary-details">
               <p>
                 Items:{" "}
-                <span>
-                  {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
+                <span>{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
               </p>
               <p>
                 Total: <span>₱{totalPrice.toLocaleString()}</span>
               </p>
             </div>
+
             <div className="summary-actions">
-              <button className="clear-cart" onClick={clearCart}>
-                Clear Cart
-              </button>
+              <button className="clear-cart" onClick={clearCart}>Clear Cart</button>
+
               <button
                 className="checkout-btn"
                 onClick={() => navigate("/checkout")}
