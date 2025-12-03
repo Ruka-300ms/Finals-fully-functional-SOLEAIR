@@ -9,6 +9,7 @@ import AccountPage from "./pages/AccountPage";
 import Checkout from "./pages/Checkout";
 import Footer from "./components/Footer/Footer";
 import Login from "./pages/Login";
+import Register from "./pages/Register"; // <--- IMPORT THIS
 import AdminDashboard from "./pages/AdminDashboard";
 
 // Product & Cart pages
@@ -22,9 +23,11 @@ import "./App.css";
 function AppContent() {
   const location = useLocation();
 
-  // Hide Navbar & Footer on login and admin pages
+  // Hide Navbar & Footer on login, admin, AND register pages
   const hideNavAndFooter =
-    location.pathname === "/login" || location.pathname === "/admin";
+    location.pathname === "/login" || 
+    location.pathname === "/admin" || 
+    location.pathname === "/register"; // <--- ADDED THIS
 
   // Footer only on homepage and about page
   const showFooter =
@@ -32,7 +35,7 @@ function AppContent() {
 
   return (
     <>
-      {/* Hide Navbar on /login and /admin */}
+      {/* Hide Navbar on /login, /register and /admin */}
       {!hideNavAndFooter && <Navbar />}
 
       <Routes>
@@ -46,7 +49,11 @@ function AppContent() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<Checkout />} />
+        
+        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} /> {/* <--- ADDED THIS */}
+        
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
 

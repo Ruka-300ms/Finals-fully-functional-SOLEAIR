@@ -4,47 +4,70 @@ import "./Footer.css";
 
 const Footer = () => {
   return (
-    <footer className="footer">
+    <footer className="footer-wrapper">
       <div className="footer-container">
-
-        <div className="footer-section brand">
-          <h2 className="footer-logo">Soleair</h2>
-          <p className="footer-description">
-            Elevate your step. Discover premium shoes designed for comfort and style.
+        
+        {/* 1. Brand Section */}
+        <div className="footer-brand">
+          <h2>Soleair.</h2>
+          <p>
+            Elevate your step. Discover premium shoes designed for comfort, style, and the journey ahead.
           </p>
+          <div className="social-links">
+            {/* Replace '#' with actual links */}
+            <a href="#" className="social-icon" aria-label="Instagram">IG</a>
+            <a href="#" className="social-icon" aria-label="Facebook">FB</a>
+            <a href="#" className="social-icon" aria-label="Twitter">TW</a>
+          </div>
         </div>
 
-        <div className="footer-section">
-          <h3>Explore</h3>
+        {/* 2. Shop Links */}
+        <div className="footer-column">
+          <h3>Shop</h3>
           <ul>
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/products">Products</Link></li>
-            <li><Link to="/about">About Us</Link></li>
-            <li><Link to="/account">My Account</Link></li>
+            <li><Link to="/products?category=men">Men's Shoes</Link></li>
+            <li><Link to="/products?category=women">Women's Shoes</Link></li>
+            <li><Link to="/products?category=new">New Arrivals</Link></li>
+            <li><Link to="/products?category=sale">Sale</Link></li>
           </ul>
         </div>
 
-        <div className="footer-section">
+        {/* 3. Support Links */}
+        <div className="footer-column">
           <h3>Support</h3>
           <ul>
-            <li><Link to="/contact">Contact Us</Link></li>
-            <li><Link to="/faq">FAQs</Link></li>
-            <li><Link to="/returns">Returns</Link></li>
-            <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/faq">Help Center</Link></li>
+            <li><Link to="/returns">Returns & Exchanges</Link></li>
+            <li><Link to="/shipping">Shipping Info</Link></li>
+            <li><Link to="/track">Order Tracker</Link></li>
           </ul>
         </div>
 
-        <div className="footer-section contact">
-          <h3>Contact</h3>
-          <p>Email: support@soleair.com</p>
-          <p>Phone: +63 912 345 6789</p>
-          <p>Address: Manila, Philippines</p>
+        {/* 4. Newsletter */}
+        <div className="footer-column newsletter-column">
+          <h3>Stay in the loop</h3>
+          <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '15px' }}>
+            Sign up for exclusive drops and 10% off your first order.
+          </p>
+          <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+            <input 
+                type="email" 
+                placeholder="Enter your email" 
+                className="newsletter-input" 
+                required
+            />
+            <button type="submit" className="subscribe-btn">Subscribe</button>
+          </form>
         </div>
 
       </div>
 
       <div className="footer-bottom">
         <p>© {new Date().getFullYear()} Soleair. All Rights Reserved.</p>
+        <div className="legal-links">
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms of Service</Link>
+        </div>
       </div>
     </footer>
   );

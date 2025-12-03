@@ -15,8 +15,6 @@ function NavBar() {
     if (searchInput) {
       navigate(`/products?search=${encodeURIComponent(searchInput)}`);
       document.getElementById("search-input").value = "";
-    } else {
-      alert("Please enter a search term.");
     }
   };
 
@@ -27,43 +25,55 @@ function NavBar() {
   };
 
   return (
-    <nav className="navbar">
-      <Link to="/" className="logo">Soleair</Link>
+    <>
+      {/* Ensure premium fonts are loaded */}
+      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
 
-      <ul className="nav-links">
-        <li><Link to="/">HOME</Link></li>
-        <li><Link to="/about">ABOUT US</Link></li>
-        <li><Link to="/products?category=men">MEN</Link></li>
-        <li><Link to="/products?category=women">WOMEN</Link></li>
-        <li><Link to="/products?category=kids">KIDS</Link></li>
-      </ul>
-
-      <div className="nav-icons">
-        <div className="cart-container">
-          <Link to="/cart" aria-label="Shopping Cart">
-            <FaShoppingCart className="nav-icon" />
-            {totalItems > 0 && <span className="cart-count">{totalItems}</span>}
-          </Link>
+      <nav className="navbar">
+        <div className="nav-left">
+          <Link to="/" className="logo">Soleair</Link>
         </div>
 
-        <Link to="/account" aria-label="Account">
-          <FaRegUser className="nav-icon" />
-        </Link>
-
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search..."
-            id="search-input"
-            onKeyDown={handleKeyDown}
-          />
-          <FaSearch
-            className="search-icon-inside"
-            onClick={handleSearch}
-          />
+        <div className="nav-center">
+          <ul className="nav-links">
+            <li><Link to="/">Home</Link></li>
+            <li><Link to="/about">About</Link></li>
+            <li><Link to="/products?category=men">Men</Link></li>
+            <li><Link to="/products?category=women">Women</Link></li>
+            <li><Link to="/products?category=kids">Kids</Link></li>
+          </ul>
         </div>
-      </div>
-    </nav>
+
+        <div className="nav-right">
+          {/* Minimalist Search */}
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search..."
+              id="search-input"
+              onKeyDown={handleKeyDown}
+            />
+            <FaSearch
+              className="search-icon-inside"
+              onClick={handleSearch}
+            />
+          </div>
+
+          <div className="icon-group">
+            <div className="cart-container">
+              <Link to="/cart" aria-label="Shopping Cart">
+                <FaShoppingCart className="nav-icon" />
+                {totalItems > 0 && <span className="cart-count">{totalItems}</span>}
+              </Link>
+            </div>
+
+            <Link to="/account" aria-label="Account">
+              <FaRegUser className="nav-icon" />
+            </Link>
+          </div>
+        </div>
+      </nav>
+    </>
   );
 }
 

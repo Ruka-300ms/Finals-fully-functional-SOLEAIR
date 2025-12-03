@@ -1,95 +1,209 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+// --- START: AUTHENTICATED FETCH LOGIC ---
+const API_BASE_URL = 'http://localhost:8083/api';
+
+/**
+ * Executes an API request with the user's authentication token.
+ */
+async function embeddedAuthFetch(endpoint, config = {}) {
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        throw new Error("Authentication required. Please log in.");
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...(config.headers || {}),
+    };
+
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(url, { ...config, headers });
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.warn("[API] 401 Unauthorized - Clearing Session");
+                // Force logout if token is invalid
+                localStorage.removeItem('auth_token'); 
+                localStorage.removeItem('user_info');
+            }
+            throw new Error(data.message || `API Error: ${response.status}`);
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error(`Fetch to ${endpoint} failed:`, error);
+        throw error;
+    }
+}
+// --- END: AUTHENTICATED FETCH LOGIC ---
+
+
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // load cart from localStorage or start empty
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const raw = localStorage.getItem("cart");
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [cartItems, setCartItems] = useState([]);
+  
+  // FIX 1: Initialize isLoggedIn directly from localStorage to prevent "false" flash on reload
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('auth_token'));
+  
+  const [isCartLoading, setIsCartLoading] = useState(true);
 
-  // keep cart in sync with localStorage
+  // --- 1. INITIAL LOAD & AUTH CHECK ---
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+    // Check if user is logged in
+    const token = localStorage.getItem('auth_token');
+    
+    // Sync state with storage
+    setIsLoggedIn(!!token);
 
-  // utility: find matching cart index (match by id + size + color)
-  const findMatchingIndex = (items, product) =>
-    items.findIndex(
-      (i) =>
-        i.id === product.id &&
-        (i.size || "") === (product.size || "") &&
-        (i.color || "") === (product.color || "")
-    );
-
-  // add to cart (merge if same product+size+color)
-  const addToCart = (product) => {
-    setCartItems((prev) => {
-      const copy = [...prev];
-      const idx = findMatchingIndex(copy, product);
-
-      if (idx >= 0) {
-        // merge: increase quantity but do not exceed available stock
-        const existing = copy[idx];
-        const newQty = existing.quantity + (product.quantity || 1);
-        // productQuantity should read from product.quantity (stock) if provided
-        const maxStock = product.quantity !== undefined ? product.quantity : existing.stock ?? Infinity;
-        existing.quantity = Math.min(newQty, maxStock);
-        copy[idx] = { ...existing };
-        return copy;
+    const fetchCart = async () => {
+      if (!token) {
+        setCartItems([]);
+        setIsCartLoading(false);
+        return;
       }
-
-      // new cart item: ensure it has quantity property
-      const toAdd = {
-        ...product,
-        quantity: product.quantity ?? 1,
-      };
-      return [...copy, toAdd];
-    });
-  };
-
-  const removeFromCart = (id, size = undefined, color = undefined) => {
-    setCartItems((prev) =>
-      prev.filter(
-        (i) =>
-          !(
-            i.id === id &&
-            (size === undefined || i.size === size) &&
-            (color === undefined || i.color === color)
-          )
-      )
-    );
-  };
-
-  const updateQuantity = (id, newQty, size = undefined, color = undefined) => {
-    setCartItems((prev) =>
-      prev.map((item) => {
-        if (
-          item.id === id &&
-          (size === undefined || item.size === size) &&
-          (color === undefined || item.color === color)
-        ) {
-          return { ...item, quantity: Math.max(1, newQty) };
+      
+      try {
+        const data = await embeddedAuthFetch("/cart");
+        setCartItems(data); 
+      } catch (error) {
+        console.error("Failed to load cart from DB:", error);
+        // If error was 401, AuthFetch already cleared storage, so update state
+        if (!localStorage.getItem('auth_token')) {
+            setIsLoggedIn(false);
         }
-        return item;
-      })
+        setCartItems([]);
+      } finally {
+        setIsCartLoading(false);
+      }
+    };
+
+    fetchCart();
+    
+  }, []); // Run once on mount
+
+  // --- 2. CORE CRUD FUNCTIONS (API CALLS) ---
+
+  const addToCart = async (product) => {
+    // FIX 2: Double check localStorage explicitly. 
+    // Sometimes React state (isLoggedIn) updates slower than the user clicks.
+    const token = localStorage.getItem('auth_token');
+    
+    if (!token) {
+      setIsLoggedIn(false); // Ensure state matches
+      alert("Please log in to add items to your cart.");
+      return false;
+    }
+
+    // Prepare data payload for Laravel (Must use product.id, quantity, size, color)
+    const payload = {
+      product_id: product.id,
+      quantity: product.quantity ?? 1, 
+      size: product.size || null,
+      color: product.color || null,
+    };
+    
+    try {
+      const response = await embeddedAuthFetch("/cart", {
+        method: "POST",
+        body: payload,
+      });
+
+      setCartItems(prev => {
+        const newItem = response.data;
+        // Find existing item by database ID (the cart row ID)
+        const existingIdx = prev.findIndex(item => item.id === newItem.id);
+
+        if (existingIdx !== -1) {
+          // Server successfully incremented quantity of an existing item
+          const updatedCart = [...prev];
+          updatedCart[existingIdx] = newItem;
+          return updatedCart;
+        } else {
+          // Server created a new item
+          return [...prev, newItem];
+        }
+      });
+      return true;
+      
+    } catch (error) {
+      // If the token was invalid, update state so UI reflects logged out
+      if (!localStorage.getItem('auth_token')) {
+          setIsLoggedIn(false);
+      }
+      alert(error.message || "Failed to add item to cart.");
+      return false;
+    }
+  };
+
+  // Note: This function requires the DB cart item ID, NOT the product ID
+  const removeFromCart = async (cartItemId) => {
+    if (!localStorage.getItem('auth_token')) return;
+
+    try {
+      await embeddedAuthFetch(`/cart/${cartItemId}`, { method: "DELETE" });
+      
+      setCartItems(prev => prev.filter(item => item.id !== cartItemId));
+
+    } catch (error) {
+      alert(error.message || "Failed to remove item from cart.");
+    }
+  };
+
+  // Note: This function requires the DB cart item ID, NOT the product ID
+  const updateQuantity = async (cartItemId, newQty) => {
+    if (!localStorage.getItem('auth_token') || newQty < 1) return;
+
+    try {
+      const response = await embeddedAuthFetch(`/cart/${cartItemId}`, {
+        method: "PUT",
+        body: { quantity: newQty },
+      });
+      
+      setCartItems(prev => prev.map(item => 
+        item.id === cartItemId ? response.data : item
+      ));
+
+    } catch (error) {
+      alert(error.message || "Failed to update quantity.");
+    }
+  };
+
+  const clearCart = async () => {
+    if (!localStorage.getItem('auth_token')) return;
+
+    // Delete items one by one via API
+    const deletePromises = cartItems.map(item => 
+        embeddedAuthFetch(`/cart/${item.id}`, { method: "DELETE" }).catch(e => console.error(e))
     );
-  };
-
-  const clearCart = () => {
+    
+    await Promise.all(deletePromises);
+    
     setCartItems([]);
-    localStorage.setItem("cart", JSON.stringify([]));
   };
-
+  
+  // CALCULATIONS
   const totalPrice = cartItems.reduce((sum, it) => {
-    const price = it.discount ? it.price * (1 - it.discount / 100) : it.price;
+    // Access nested product details (item.product.price)
+    const price = it.product && it.product.discount 
+        ? it.product.price * (1 - it.product.discount / 100) 
+        : (it.product ? it.product.price : 0);
     return sum + price * (it.quantity || 1);
   }, 0);
+
+  if (isCartLoading) return <p>Loading shopping cart...</p>;
 
   return (
     <CartContext.Provider
@@ -100,7 +214,6 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         clearCart,
         totalPrice,
-        setCartItems, // exported for convenience (admin/test)
       }}
     >
       {children}

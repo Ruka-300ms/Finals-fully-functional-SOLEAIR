@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../components/Cart/CartContext";
 import "../styles/ProductDetails.css";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import productsJson from "../data/products.json";
+// Added icons for the new design
+import { FaStar, FaRulerCombined } from "react-icons/fa";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -16,76 +16,82 @@ const ProductDetails = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showAdded, setShowAdded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // load product list from localStorage or fallback to bundled JSON
+  // --- INTEGRATION: Fetch All Products ---
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("products"));
-    const base = stored && stored.length ? stored : productsJson;
-    setProductList(base);
+    fetch('http://localhost:8083/api/products')
+      .then(res => res.json())
+      .then(data => {
+        setProductList(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error loading products", err);
+        setLoading(false);
+      });
+  }, []);
 
-    const found = base.find((p) => Number(p.id) === Number(id));
-    setProduct(found || null);
-    // reset selection when id changes
-    setSelectedSize("");
-    setSelectedColor("");
-    setQuantity(1);
-  }, [id]);
+  // Find specific product
+  useEffect(() => {
+    if (productList.length > 0) {
+      const found = productList.find((p) => Number(p.id) === Number(id));
+      setProduct(found || null);
+      
+      // Reset selection
+      setSelectedSize("");
+      setSelectedColor("");
+      setQuantity(1);
+    }
+  }, [id, productList]);
+
+  if (loading) return <div className="pd-loading">Loading Collection...</div>;
 
   if (!product) {
     return (
       <div className="pd-empty">
         <p>Product not found.</p>
-        <button className="pd-back" onClick={() => navigate("/products")}>
-          ← Back to Products
+        <button className="pd-back-btn" onClick={() => navigate("/products")}>
+          Back to Collection
         </button>
       </div>
     );
   }
 
-  const sizes = product.sizes && product.sizes.length ? product.sizes : ["6", "7", "8", "9", "10", "11"];
+  // Handle default sizes/colors
+  const sizes = product.sizes ? (Array.isArray(product.sizes) ? product.sizes : JSON.parse(product.sizes)) : ["6", "7", "8", "9", "10", "11"];
   const colors = ["black", "white", "red", "blue", "green"];
-
   const availableStock = Number(product.quantity ?? 0);
 
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert("Please choose a size before adding to cart.");
-      return;
-    }
-    if (quantity > availableStock) {
-      alert(`Only ${availableStock} left in stock. Please reduce quantity.`);
-      return;
-    }
+  // --- HANDLERS ---
+  const handleAddToCart = async () => {
+    if (!selectedSize) return alert("Please select a size.");
+    if (quantity > availableStock) return alert(`Only ${availableStock} left in stock.`);
 
-    addToCart({
-      ...product,
+    const success = await addToCart({
+      id: product.id,
       size: selectedSize,
       color: selectedColor || "Default",
-      quantity,
+      quantity: quantity,
     });
 
-    setShowAdded(true);
-    setTimeout(() => setShowAdded(false), 1400);
+    if (success) {
+      setShowAdded(true);
+      setTimeout(() => setShowAdded(false), 2000);
+    }
   };
 
-  const handleCheckout = () => {
-    if (!selectedSize) {
-      alert("Please choose a size before proceeding to checkout.");
-      return;
-    }
-    if (quantity > availableStock) {
-      alert(`Only ${availableStock} left in stock. Please reduce quantity.`);
-      return;
-    }
-
-    addToCart({
-      ...product,
+  const handleCheckout = async () => {
+    if (!selectedSize) return alert("Please select a size.");
+    
+    const success = await addToCart({
+      id: product.id,
       size: selectedSize,
       color: selectedColor || "Default",
-      quantity,
+      quantity: quantity,
     });
 
-    navigate("/checkout");
+    if (success) navigate("/checkout");
   };
 
   const goPrev = () => {
@@ -103,112 +109,132 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="pd-page">
-      <button className="pd-back" onClick={() => navigate("/products")}>
-        ← Back to Products
-      </button>
-
-      <div className="pd-card">
-        <button className="pd-arrow left" onClick={goPrev} aria-label="Previous product">
-          <FaChevronLeft />
-        </button>
-
-        <div className="pd-image-col">
-          <div className="pd-image-wrap">
-            <img src={product.image} alt={product.name} className="pd-image" />
-          </div>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      
+      <div className="pd-page">
+        {/* Navigation Header */}
+        <div className="pd-nav-header">
+            <button className="pd-back-link" onClick={() => navigate("/products")}>
+                &larr; Back to Shop
+            </button>
+            <div className="pd-nav-controls">
+                <button onClick={goPrev} disabled={productList.length <= 1}>Prev</button>
+                <span>|</span>
+                <button onClick={goNext} disabled={productList.length <= 1}>Next</button>
+            </div>
         </div>
 
-        <div className="pd-info-col">
-          {product.discount ? <span className="pd-discount">-{product.discount}%</span> : null}
-
-          <h1 className="pd-title">{product.name}</h1>
-          <p className="pd-brand">Brand: {product.brand}</p>
-
-          <div className="pd-price-row">
-            {product.discount ? (
-              <>
-                <span className="pd-old">₱{product.price.toLocaleString()}</span>
-                <span className="pd-price">
-                  ₱{(product.price * (1 - product.discount / 100)).toLocaleString()}
-                </span>
-              </>
-            ) : (
-              <span className="pd-price">₱{product.price.toLocaleString()}</span>
-            )}
-          </div>
-
-          <p className="pd-desc">{product.description}</p>
-
-          <div className="pd-section">
-            <div className="pd-section-title">Color</div>
-            <div className="pd-colors">
-              {colors.map((c) => (
-                <button
-                  key={c}
-                  className={`pd-color ${c} ${selectedColor === c ? "selected" : ""}`}
-                  onClick={() => setSelectedColor(c)}
-                  aria-label={`Choose ${c}`}
-                />
-              ))}
+        <div className="pd-container">
+          
+          {/* Left Column: Image */}
+          <div className="pd-image-section">
+            <div className="pd-image-card">
+                <img src={product.image} alt={product.name} className="pd-main-image" />
+                {product.discount > 0 && <span className="pd-badge">-{product.discount}% OFF</span>}
             </div>
           </div>
 
-          <div className="pd-section">
-            <div className="pd-section-title">Size</div>
-            <div className="pd-sizes">
-              {sizes.map((s) => (
-                <button
-                  key={s}
-                  className={selectedSize === s ? "pd-size selected" : "pd-size"}
-                  onClick={() => setSelectedSize(s)}
-                >
-                  {s}
-                </button>
-              ))}
+          {/* Right Column: Details */}
+          <div className="pd-info-section">
+            <div className="pd-header">
+                <p className="pd-brand">{product.brand}</p>
+                <h1 className="pd-title">{product.name}</h1>
+                <div className="pd-meta">
+                    <div className="pd-rating">
+                        <FaStar /> <FaStar /> <FaStar /> <FaStar /> <FaStar className="star-muted"/> 
+                        <span>(4.0)</span>
+                    </div>
+                    <span className="pd-stock-status">
+                        {availableStock > 0 ? `${availableStock} in Stock` : "Out of Stock"}
+                    </span>
+                </div>
             </div>
-          </div>
 
-          <div className="pd-section quantity-wrap">
-            <div className="pd-section-title">Quantity</div>
-            <div className="pd-qty">
-              <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
-              <span>{quantity}</span>
-              <button onClick={() => setQuantity((q) => Math.min(availableStock, q + 1))}>+</button>
+            <div className="pd-price-block">
+                {product.discount > 0 ? (
+                    <>
+                        <span className="pd-price-new">₱{(product.price * (1 - product.discount / 100)).toLocaleString()}</span>
+                        <span className="pd-price-old">₱{Number(product.price).toLocaleString()}</span>
+                    </>
+                ) : (
+                    <span className="pd-price-new">₱{Number(product.price).toLocaleString()}</span>
+                )}
             </div>
-            <div style={{ marginTop: 8, color: availableStock === 0 ? "#d33" : "#666" }}>
-              {availableStock === 0 ? "Out of stock" : `Available: ${availableStock}`}
+
+            <p className="pd-description">{product.description}</p>
+
+            <div className="pd-options">
+                {/* Colors */}
+                <div className="pd-option-group">
+                    <span className="pd-option-label">Select Color</span>
+                    <div className="pd-color-list">
+                        {colors.map((c) => (
+                            <button
+                                key={c}
+                                className={`pd-color-btn ${c} ${selectedColor === c ? "active" : ""}`}
+                                onClick={() => setSelectedColor(c)}
+                                title={c}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Sizes */}
+                <div className="pd-option-group">
+                    <div className="pd-option-header">
+                        <span className="pd-option-label">Select Size</span>
+                        <button className="pd-size-guide"><FaRulerCombined /> Size Guide</button>
+                    </div>
+                    <div className="pd-size-list">
+                        {sizes.map((s) => (
+                            <button
+                                key={s}
+                                className={`pd-size-btn ${selectedSize === s ? "active" : ""}`}
+                                onClick={() => setSelectedSize(s)}
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
+
+            {/* Actions */}
+            <div className="pd-footer">
+                <div className="pd-quantity-selector">
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                    <span>{quantity}</span>
+                    <button onClick={() => setQuantity(Math.min(availableStock, quantity + 1))}>+</button>
+                </div>
+
+                <div className="pd-buttons">
+                    <button 
+                        className="pd-btn-cart" 
+                        onClick={handleAddToCart}
+                        disabled={availableStock === 0}
+                    >
+                        Add to Cart
+                    </button>
+                    <button 
+                        className="pd-btn-buy" 
+                        onClick={handleCheckout}
+                        disabled={availableStock === 0}
+                    >
+                        Buy Now
+                    </button>
+                </div>
+            </div>
+
+            {/* Success Toast */}
+            <div className={`pd-toast ${showAdded ? "show" : ""}`}>
+                Added to Cart Successfully!
+            </div>
+
           </div>
-
-          <div className="pd-actions">
-            <button
-              className="pd-btn pd-add"
-              onClick={handleAddToCart}
-              disabled={availableStock === 0}
-              style={availableStock === 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-            >
-              Add to Cart
-            </button>
-
-            <button
-              className="pd-btn pd-checkout"
-              onClick={handleCheckout}
-              disabled={availableStock === 0}
-              style={availableStock === 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-            >
-              Proceed to Checkout
-            </button>
-          </div>
-
-          {showAdded && <div className="pd-toast">Added to cart</div>}
         </div>
-
-        <button className="pd-arrow right" onClick={goNext} aria-label="Next product">
-          <FaChevronRight />
-        </button>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
@@ -18,15 +21,23 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             
             // Quantity of the product
-            $table->unsignedSmallInteger('quantity')->default(1);
-            
-            // Ensure a user can only have one entry (row) per product
-            $table->unique(['user_id', 'product_id']);
+            $table->integer('quantity'); // Using standard integer
+
+            // --- ADDED FOR VARIANT SUPPORT ---
+            $table->string('size')->nullable(); 
+            $table->string('color')->nullable(); 
+
+            // CRITICAL FIX: The item is unique only if the user, product, size, AND color match.
+            // This allows a user to have the same shoe in multiple sizes/colors.
+            $table->unique(['user_id', 'product_id', 'size', 'color']);
 
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('carts');

@@ -1,77 +1,109 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
-import productsData from "../data/products.json";
+// Added icons for a professional look
+import { FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaBoxOpen } from "react-icons/fa";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate(); // used for logout redirect
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  
+  // Form State
   const [form, setForm] = useState({
     name: "",
     brand: "",
     price: "",
     category: "",
     quantity: "",
-    image: ""
+    image: "",
+    description: ""
   });
 
+  const API_URL = 'http://localhost:8083/api/products';
 
-// Load products from localStorage or JSON
-useEffect(() => {
-  const storedProducts = localStorage.getItem("products");
-  if (storedProducts) {
-    setProducts(JSON.parse(storedProducts));
-  } else {
-    setProducts(productsData);
-  }
-}, []);
+  const fetchProducts = () => {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => console.error("Error loading products:", err));
+  };
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  // Add or update product
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.brand || !form.price || !form.image) {
+    if (!form.name || !form.brand || !form.price || !form.image || !form.description) {
       return alert("Please fill in all required fields.");
     }
 
-    if (editingId) {
-      const updatedProducts = products.map((p) =>
-        p.id === editingId ? { ...p, ...form, price: parseFloat(form.price) } : p
-      );
-      setProducts(updatedProducts);
-      localStorage.setItem("products", JSON.stringify(updatedProducts));
-      setEditingId(null);
-    } else {
-      const newProduct = {
-        id: products.length ? products[products.length - 1].id + 1 : 1,
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API_URL}/${editingId}` : API_URL;
+
+    fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
         ...form,
         price: parseFloat(form.price),
-      };
-      const updatedProducts = [...products, newProduct];
-      setProducts(updatedProducts);
-      localStorage.setItem("products", JSON.stringify(updatedProducts));
-    }
+        quantity: parseInt(form.quantity)
+      })
+    })
+    .then(async (res) => {
+      const data = await res.json();
+      if (res.ok) {
+        alert(editingId ? "Product updated!" : "Product added!");
+        fetchProducts();
+        resetForm();
+      } else {
+        console.error("Server Error Details:", data);
+        alert("Error: " + (data.message || JSON.stringify(data)));
+      }
+    })
+    .catch(err => {
+      console.error("Network Error:", err);
+      alert("Network Error: " + err.message);
+    });
+  };
 
-    // Reset form
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => {
+        if(res.ok) fetchProducts();
+        else alert("Error deleting product.");
+      })
+      .catch(err => console.error(err));
+    }
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
     setForm({
       name: "",
       brand: "",
       price: "",
       category: "",
       quantity: "",
-      image: ""
+      image: "",
+      description: "" 
     });
   };
 
-  // Edit handler
   const handleEdit = (product) => {
     setEditingId(product.id);
     setForm({
@@ -80,20 +112,11 @@ useEffect(() => {
       price: product.price,
       category: product.category,
       quantity: product.quantity,
-      image: product.image
+      image: product.image,
+      description: product.description || "" 
     });
   };
 
-  // Delete handler
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      const updatedProducts = products.filter((p) => p.id !== id);
-      setProducts(updatedProducts);
-      localStorage.setItem("products", JSON.stringify(updatedProducts));
-    }
-  };
-
-  // Logout handler
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
       navigate("/login");
@@ -101,154 +124,154 @@ useEffect(() => {
   };
 
   return (
-    <div className="admin-page">
-      <div className="adminHeader">
-        <div className="admin-header-top">
-          <h1>Product Management</h1>
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </div>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-      <div className="admin-split">
-        {/* LEFT SIDE — Add/Edit Form */}
-        <div className="admin-form-section">
-          <h3>{editingId ? "Edit Product" : "Add Product"}</h3>
-            <form onSubmit={handleSubmit} className="admin-form">
-            <input
-              type="text"
-              name="name"
-              placeholder="Product Name"
-              value={form.name}
-              onChange={handleChange}
-            />
-            <input
-              type="text"
-              name="brand"
-              placeholder="Brand"
-              value={form.brand}
-              onChange={handleChange}
-            />
-            <input
-              type="number"
-              name="price"
-              placeholder="Price"
-              value={form.price}
-              onChange={handleChange}
-            />
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select Category</option>
-              <option value="Men">Men</option>
-              <option value="Women">Women</option>
-              <option value="Kids">Kids</option>
-            </select>
-
-            <input
-              type="number"
-              name="quantity"
-              placeholder="Quantity"
-              value={form.quantity}
-              onChange={handleChange}
-            />
-            <input
-              type="text"
-              name="image"
-              placeholder="Image URL or path"
-              value={form.image}
-              onChange={handleChange}
-            />
-
-            <button type="submit" className="save-btn">
-              {editingId ? "Update Product" : "Add Product"}
+      <div className="admin-page">
+        <div className="adminHeader">
+          <div className="header-content">
+            <div className="logo-area">
+                <h1>Soleair <span className="admin-badge">Admin</span></h1>
+                <p>Manage your inventory and products</p>
+            </div>
+            <button className="logout-btn" onClick={handleLogout}>
+                <FaSignOutAlt /> Logout
             </button>
-            {editingId && (
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => {
-                  setEditingId(null);
-                  setForm({
-                    name: "",
-                    brand: "",
-                    price: "",
-                    category: "",
-                    quantity: "",
-                    image: ""
-                  });
-                }}
-              >
-                Cancel
-              </button>
-            )}
-          </form>
+          </div>
         </div>
 
-        {/* RIGHT SIDE — Product Table */}
-        <div className = "scrollable-panel">
-          <div className="admin-table-section">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Image</th>
-                  <th>Name</th>
-                  <th>Brand</th>
-                  <th>Category</th>
-                  <th>Price (₱)</th>
-                  <th>Quantity</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length > 0 ? (
-                  products.map((product) => (
-                    <tr key={product.id}>
-                      <td>{product.id}</td>
-                      <td>
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="product-img"
-                        />
-                      </td>
-                      <td>{product.name}</td>
-                      <td>{product.brand}</td>
-                      <td>{product.category}</td>
-                      <td>{product.price.toLocaleString()}</td>
-                      <td>{product.quantity}</td>
-                      <td>
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="edit-btn"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="delete-btn"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="8">No products found.</td>
-                  </tr>
+        <div className="admin-split">
+          {/* LEFT SIDE — Add/Edit Form */}
+          <div className="admin-form-section">
+            <div className="form-header">
+                <h3>{editingId ? "Edit Product" : "Add New Product"}</h3>
+                <p>{editingId ? "Update product details below" : "Fill in the details to create a new item"}</p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="admin-form">
+              <div className="form-group">
+                <label>Product Name</label>
+                <input type="text" name="name" placeholder="e.g. Nike Air Max" value={form.name} onChange={handleChange} />
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                    <label>Brand</label>
+                    <input type="text" name="brand" placeholder="e.g. Nike" value={form.brand} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                    <label>Category</label>
+                    <select name="category" value={form.category} onChange={handleChange} required>
+                        <option value="">Select</option>
+                        <option value="Men">Men</option>
+                        <option value="Women">Women</option>
+                        <option value="Kids">Kids</option>
+                    </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                    <label>Price</label>
+                    <input type="number" name="price" placeholder="0.00" value={form.price} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                    <label>Quantity</label>
+                    <input type="number" name="quantity" placeholder="0" value={form.quantity} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Image URL</label>
+                <input type="text" name="image" placeholder="https://..." value={form.image} onChange={handleChange} />
+              </div>
+              
+              <div className="form-group">
+                <label>Description</label>
+                <textarea 
+                    name="description" 
+                    placeholder="Product details..." 
+                    value={form.description} 
+                    onChange={handleChange}
+                    rows="3"
+                />
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" className="save-btn">
+                    {editingId ? <><FaEdit /> Update Product</> : <><FaPlus /> Add Product</>}
+                </button>
+                {editingId && (
+                    <button type="button" className="cancel-btn" onClick={resetForm}>Cancel</button>
                 )}
-              </tbody>
-            </table>
+              </div>
+            </form>
+          </div>
+
+          {/* RIGHT SIDE — Product Table */}
+          <div className="scrollable-panel">
+            <div className="admin-table-section">
+                <div className="table-header-row">
+                    <h3>Inventory List</h3>
+                    <span className="count-badge">{products.length} Items</span>
+                </div>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th className="actions-th">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.length > 0 ? (
+                    products.map((product) => (
+                      <tr key={product.id}>
+                        <td className="id-col">#{product.id}</td>
+                        <td className="product-col">
+                            <div className="product-cell">
+                                <img src={product.image} alt={product.name} className="product-img" />
+                                <div className="product-info">
+                                    <span className="p-name">{product.name}</span>
+                                    <span className="p-brand">{product.brand}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span className="category-tag">{product.category}</span></td>
+                        <td className="price-col">₱{Number(product.price).toLocaleString()}</td>
+                        <td>
+                            <span className={`stock-badge ${product.quantity < 5 ? 'low' : ''}`}>
+                                {product.quantity}
+                            </span>
+                        </td>
+                        <td className="actions-col">
+                          <button onClick={() => handleEdit(product)} className="edit-btn" title="Edit">
+                            <FaEdit />
+                          </button>
+                          <button onClick={() => handleDelete(product.id)} className="delete-btn" title="Delete">
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                        <td colSpan="6" className="empty-state">
+                            <FaBoxOpen className="empty-icon"/>
+                            <p>No products found in inventory.</p>
+                        </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

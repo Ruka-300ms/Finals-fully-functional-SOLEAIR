@@ -4,11 +4,10 @@
   --bg-color: #f8f9fd;
   --input-bg: #f3f4f6;
   --transition: all 0.3s ease;
-  --accent-color: #d4483f; /* Kept your red accent for specific links if needed */
 }
 
 /* Wrapper */
-.login-wrapper {
+.register-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -19,11 +18,11 @@
 }
 
 /* Main Card */
-.login-box {
+.register-box {
   display: flex;
   width: 950px;
   max-width: 100%;
-  min-height: 600px;
+  min-height: 650px;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
@@ -31,26 +30,26 @@
 }
 
 /* --- Left Side --- */
-.login-left {
-  flex: 1; 
+.register-left {
+  flex: 1.2; 
   padding: 50px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.login-header {
+.register-header {
   margin-bottom: 30px;
 }
 
-.login-header h1 {
+.register-header h1 {
   font-size: 2rem;
   font-weight: 800;
   color: var(--primary-color);
   margin-bottom: 8px;
 }
 
-.login-header p {
+.register-header p {
   color: #666;
   font-size: 1rem;
 }
@@ -67,7 +66,7 @@
 }
 
 /* Form Styles */
-.login-form {
+.register-form {
   width: 100%;
 }
 
@@ -101,31 +100,28 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Actions Row (Checkbox + Forgot Password) */
-.actions-row {
+/* Row for Passwords */
+.row-inputs {
+  display: flex;
+  gap: 15px;
+}
+
+.row-inputs .input-group {
+  flex: 1;
+}
+
+/* Show Password Checkbox */
+.show-password-toggle {
+    margin-bottom: 20px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    font-size: 0.9rem;
 }
 
-.forgot-link {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.forgot-link:hover {
-    text-decoration: underline;
-}
-
-/* Checkbox Style */
 .checkbox-container {
     display: flex;
     align-items: center;
     cursor: pointer;
+    font-size: 0.85rem;
     color: #666;
     user-select: none;
 }
@@ -139,7 +135,7 @@
 }
 
 /* Button */
-.login-btn {
+.register-btn {
   width: 100%;
   padding: 16px;
   background-color: var(--primary-color);
@@ -155,16 +151,13 @@
   align-items: center;
 }
 
-.login-btn:hover {
+.register-btn:hover {
   background-color: #333;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-.login-btn:disabled {
+.register-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
-  transform: none;
 }
 
 /* Loader */
@@ -183,47 +176,45 @@
     100% { transform: rotate(360deg); }
 }
 
-/* Signup Link */
-.signup-text {
+/* Login Link */
+.login-text {
   text-align: center;
   margin-top: 25px;
   color: #666;
   font-size: 0.95rem;
 }
 
-.signup-text a {
+.login-text a {
   color: var(--primary-color);
   font-weight: 700;
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border 0.3s;
 }
 
-.signup-text a:hover {
-  border-bottom: 1px solid var(--primary-color);
+.login-text a:hover {
+  text-decoration: underline;
 }
 
 /* --- Right Side (Image) --- */
-.login-right {
-  flex: 1.1; /* Slightly larger image area */
+.register-right {
+  flex: 1;
   position: relative;
   display: none;
 }
 
 @media (min-width: 900px) {
-  .login-right {
+  .register-right {
     display: block;
   }
 }
 
-.login-right img {
+.register-right img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 /* Image Overlay */
-.login-overlay {
+.register-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -241,22 +232,19 @@
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 10px;
-    line-height: 1.2;
-}
-
-.overlay-content p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    font-weight: 300;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
-  .login-box {
+  .register-box {
       border-radius: 0;
       height: 100vh;
   }
-  .login-left {
+  .register-left {
       padding: 30px 20px;
+  }
+  .row-inputs {
+      flex-direction: column;
+      gap: 0;
   }
 }
