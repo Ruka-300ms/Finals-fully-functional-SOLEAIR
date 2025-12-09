@@ -48,7 +48,7 @@ class ProductSeeder extends Seeder
             'description' => 'A classic indoor soccer shoe turned street style icon. Features a leather upper with suede overlays and a gum rubber cupsole.',
             'price' => 8899.00,
             'quantity' => 20,
-            'image' => '/img/products-imgs/adidasAS.png',
+            'image' => '/img/products-imgs/adidas.png',
             'brand' => 'Adidas',
             'category' => 'Women',
             'is_active' => true,
@@ -63,7 +63,7 @@ class ProductSeeder extends Seeder
             'quantity' => 15,
             'image' => '/img/products-imgs/converse.png',
             'brand' => 'Converse',
-            'category' => 'Unisex',
+            'category' => 'Women',
             'is_active' => true,
         ]);
 
@@ -76,7 +76,7 @@ class ProductSeeder extends Seeder
             'quantity' => 8,
             'image' => '/img/products-imgs/ultraboost.png',
             'brand' => 'Adidas',
-            'category' => 'Running',
+            'category' => 'Kids',
             'is_active' => true,
         ]);
 

@@ -23,6 +23,7 @@ class Product extends Model
         'category',
         'price',
         'quantity',
+        'discount', // <--- ADDED THIS for Feature 3
         'image',
         'description',
         'slug',
@@ -37,6 +38,7 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'quantity' => 'integer',
+        'discount' => 'integer', // <--- ADDED THIS
         'is_active' => 'boolean',
     ];
 
@@ -62,6 +64,11 @@ class Product extends Model
             // Default active status
             if (is_null($product->is_active)) {
                 $product->is_active = true;
+            }
+            
+            // Default discount if missing (Feature 3)
+            if (is_null($product->discount)) {
+                $product->discount = 0;
             }
         });
     }

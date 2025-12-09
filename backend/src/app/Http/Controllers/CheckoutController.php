@@ -8,13 +8,12 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // Ensure Auth is used
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
     public function checkout(Request $request)
     {
-        // Must be logged in to checkout
         $user = Auth::user(); 
         if (!$user) {
             return response()->json(['message' => 'User not authenticated'], 401);
@@ -22,16 +21,40 @@ class CheckoutController extends Controller
 
         $request->validate([
             'shipping_address' => 'required|string',
-            'phone' => 'required|string', // Added phone validation based on frontend
-            'name' => 'required|string',   // Added name validation based on frontend
-            'payment_method' => 'required|string', // Added payment method
+            'phone' => 'required|string',
+            'name' => 'required|string',
+            'payment_method' => 'required|string',
+            'direct_item' => 'nullable|array' // Validate optional direct item
         ]);
 
-        // Fetch cart items linked to the user, including product details
-        $cartItems = Cart::with('product')->where('user_id', $user->id)->get();
+        $itemsToProcess = [];
 
-        if ($cartItems->isEmpty()) {
-            return response()->json(['message' => 'Cart is empty'], 422);
+        // --- LOGIC: Check for Direct Buy vs Cart ---
+        if ($request->has('direct_item') && !empty($request->direct_item)) {
+            // CASE A: "Buy Now" (Process single item, ignore Cart table)
+            $directData = $request->direct_item;
+            
+            $product = Product::find($directData['product_id']);
+            if(!$product) return response()->json(['message' => 'Product not found'], 404);
+
+            // Create a pseudo-object to mimic the Cart model structure
+            $pseudoItem = new \stdClass();
+            $pseudoItem->product_id = $product->id;
+            $pseudoItem->quantity = $directData['quantity'];
+            $pseudoItem->size = $directData['size'] ?? null;
+            $pseudoItem->color = $directData['color'] ?? null;
+            $pseudoItem->product = $product; // Attach relation manually
+
+            $itemsToProcess[] = $pseudoItem;
+
+        } else {
+            // CASE B: Standard Checkout (Process items from DB Cart)
+            $cartItems = Cart::with('product')->where('user_id', $user->id)->get();
+            
+            if ($cartItems->isEmpty()) {
+                return response()->json(['message' => 'Cart is empty'], 422);
+            }
+            $itemsToProcess = $cartItems;
         }
 
         DB::beginTransaction();
@@ -39,24 +62,28 @@ class CheckoutController extends Controller
         try {
             $total = 0;
             
-            // 1. Pre-check: Stock and Calculate Total
-            foreach ($cartItems as $item) {
+            // 1. Calculate Total & Check Stock
+            foreach ($itemsToProcess as $item) {
                 $product = $item->product;
+                
                 if (!$product) {
-                    throw new \Exception("Product not found for cart item id {$item->id}");
+                     throw new \Exception("Product data missing.");
                 }
                 
-                // CRITICAL FIX: Use product->quantity (new column) instead of product->stock (old column)
+                // Check Stock (using 'quantity' column)
                 if ($item->quantity > $product->quantity) {
                     throw new \Exception("Not enough stock for product {$product->name}. Only {$product->quantity} available.");
                 }
                 
-                // Price calculation (assuming discount is handled by frontend for display, 
-                // but we use the base price for internal calculation simplicity if needed)
-                $total += $product->price * $item->quantity; 
+                // Calculate Price (Check for discount)
+                $price = $product->discount > 0 
+                    ? $product->price * (1 - $product->discount / 100) 
+                    : $product->price;
+
+                $total += $price * $item->quantity; 
             }
 
-            // 2. Create the main Order
+            // 2. Create Order Record
             $order = Order::create([
                 'user_id' => $user->id,
                 'total_amount' => $total,
@@ -65,29 +92,35 @@ class CheckoutController extends Controller
                 'payment_method' => $request->payment_method,
             ]);
 
-            // 3. Create OrderItems and Decrement Product Stock
-            foreach ($cartItems as $item) {
+            // 3. Create Order Items & Decrement Stock
+            foreach ($itemsToProcess as $item) {
                 $product = $item->product;
+                
+                // Recalculate price for the record
+                $price = $product->discount > 0 
+                    ? $product->price * (1 - $product->discount / 100) 
+                    : $product->price;
 
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $item->quantity,
-                    'price' => $product->price, // Price at time of order
-                    'size' => $item->size, 
-                    'color' => $item->color, 
+                    'price' => $price, 
+                    'size' => $item->size ?? null, 
+                    'color' => $item->color ?? null, 
                 ]);
 
-                // CRITICAL FIX: Decrement the correct column name ('quantity')
+                // Decrement Stock
                 $product->decrement('quantity', $item->quantity);
             }
 
-            // 4. Clear the Cart
-            Cart::where('user_id', $user->id)->delete();
+            // 4. Clear Cart (ONLY if this was a Cart Checkout)
+            if (!$request->has('direct_item') || empty($request->direct_item)) {
+                Cart::where('user_id', $user->id)->delete();
+            }
 
             DB::commit();
 
-            // Return the new order details
             return response()->json(['message' => 'Order placed successfully', 'order' => $order->load('items.product')], 201);
         } catch (\Exception $e) {
             DB::rollBack();

@@ -19,12 +19,13 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'username',      // <-- ADDED: For login
+        'username',      // For login
         'email',
         'password',
-        'address',       // <-- ADDED: For shipping/billing
-        'phone_number',  // <-- ADDED: For contact
-        'is_admin',      // <-- ADDED: For role management
+        'address',       // For shipping/billing
+        'phone',  // For contact
+        'is_admin',      // For role management
+        'is_blocked',    // <-- ADDED: For blocking/unblocking users
     ];
 
     /**
@@ -47,7 +48,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'boolean', // <-- ADDED: Cast role to boolean
+            'is_admin' => 'boolean',
+            'is_blocked' => 'boolean', // <-- ADDED: Cast block status to boolean
         ];
     }
 
