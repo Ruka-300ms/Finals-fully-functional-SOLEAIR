@@ -113,7 +113,8 @@ const Login = () => {
                         Show Password
                     </label>
                 </div>
-                <a href="#" className="forgot-link">Forgot password?</a>
+                {/* LINKED TO FORGOT PASSWORD PAGE */}
+                <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
             </div>
 
             <button type="submit" className="login-btn" disabled={loading}>

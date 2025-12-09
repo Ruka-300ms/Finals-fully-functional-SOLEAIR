@@ -3,7 +3,7 @@
 :root {
   --co-bg: #fdfbfb;
   --co-text: #111;
-  --co-accent: #d4483f; /* Brand Red - #d4483f */
+  --co-accent: #d4483f; /* Brand Red */
   --co-muted: #777;
   --co-border: #e5e5e5;
   --co-card-bg: #ffffff;
@@ -12,7 +12,8 @@
 .checkout-page {
   background-color: var(--co-bg);
   min-height: 100vh;
-  padding: 120px 5% 80px;
+  /* FIX: Increased top padding to 120px to clear the fixed navbar */
+  padding: 120px 5% 80px; 
   font-family: 'Poppins', sans-serif;
   color: var(--co-text);
 }
@@ -35,6 +36,7 @@
     cursor: pointer;
     margin-bottom: 20px;
     transition: color 0.3s;
+    font-size: 0.95rem;
 }
 .checkout-back:hover { color: var(--co-accent); }
 
@@ -348,8 +350,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 60vh;
+    width: 100%;
+    /* FIX: Ensure it takes up enough vertical space but respects padding */
+    min-height: 60vh; 
     text-align: center;
+    padding-top: 40px;
 }
 
 .empty-icon, .success-icon {
@@ -366,6 +371,7 @@
     box-shadow: 0 20px 50px rgba(0,0,0,0.05);
     max-width: 500px;
     width: 90%;
+    margin: 0 auto;
 }
 
 .success-card h2 {

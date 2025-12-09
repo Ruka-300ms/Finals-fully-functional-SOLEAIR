@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../components/Cart/CartContext";
 import "../styles/ProductDetails.css";
-// Added icons for the new design
-import { FaStar, FaRulerCombined } from "react-icons/fa";
+// FIX: Corrected import from 'FarulerCombined' to 'FaRulerCombined'
+import { FaChevronLeft, FaChevronRight, FaStar, FaRulerCombined } from "react-icons/fa";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -81,17 +81,22 @@ const ProductDetails = () => {
     }
   };
 
-  const handleCheckout = async () => {
+  // FIX: Direct Buy Logic (Does NOT add to DB Cart)
+  // This sends the user directly to checkout with ONLY this item
+  const handleCheckout = () => {
     if (!selectedSize) return alert("Please select a size.");
+    if (quantity > availableStock) return alert(`Only ${availableStock} left in stock.`);
     
-    const success = await addToCart({
-      id: product.id,
-      size: selectedSize,
-      color: selectedColor || "Default",
-      quantity: quantity,
-    });
+    // Pass item details directly to checkout page via state
+    const directItem = {
+        product_id: product.id,
+        product: product, // Pass full product object for display
+        quantity: quantity,
+        size: selectedSize,
+        color: selectedColor || "Default"
+    };
 
-    if (success) navigate("/checkout");
+    navigate("/checkout", { state: { directItem } });
   };
 
   const goPrev = () => {

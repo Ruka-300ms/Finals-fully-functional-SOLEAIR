@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../components/Cart/CartContext";
 import "../styles/Checkout.css";
 // Added icons for a cleaner look
@@ -42,6 +42,11 @@ async function embeddedAuthFetch(endpoint, config = {}) {
 const Checkout = () => {
   const { cartItems, clearCart } = useCart(); 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for Direct Buy item
+  const directItem = location.state?.directItem;
+  const checkoutItems = directItem ? [directItem] : cartItems;
 
   const [shippingInfo, setShippingInfo] = useState({
     name: "",
@@ -54,7 +59,28 @@ const Checkout = () => {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  
+  // State to hold the final amount so it doesn't disappear when cart is cleared
+  const [finalAmountPaid, setFinalAmountPaid] = useState(0);
 
+  // --- NEW: AUTO-FILL SHIPPING INFO FROM PROFILE ---
+  useEffect(() => {
+    const userRaw = localStorage.getItem('user_info');
+    if (userRaw) {
+        try {
+            const user = JSON.parse(userRaw);
+            // Pre-fill the form with saved user details
+            setShippingInfo(prev => ({
+                ...prev,
+                name: user.name || "",
+                address: user.address || "", // Pulls address saved in Account Page
+                phone: user.phone || ""      // Pulls phone saved in Account Page
+            }));
+        } catch (e) { 
+            console.error("Error parsing user info for checkout auto-fill"); 
+        }
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,10 +92,22 @@ const Checkout = () => {
     setPaymentAccount(""); 
   };
 
+  // CALCULATE TOTALS based on the correct list (cart or direct item)
+  const total = checkoutItems.reduce((sum, item) => {
+    const productInfo = item.product || {}; 
+    const price = productInfo.discount 
+        ? productInfo.price * (1 - productInfo.discount / 100) 
+        : productInfo.price;
+    return sum + price * (item.quantity || 0);
+  }, 0);
+  
+  const shippingFee = 150.00;
+  const currentOrderTotal = total + shippingFee;
+
   // --- INTEGRATION: Place Order API Call ---
   const handlePlaceOrder = async () => {
-    if (cartItems.length === 0) {
-      alert("Your cart is empty. Cannot place an order.");
+    if (checkoutItems.length === 0) {
+      alert("No items to checkout.");
       return;
     }
     if (!shippingInfo.name || !shippingInfo.address || !shippingInfo.phone) {
@@ -91,7 +129,15 @@ const Checkout = () => {
         name: shippingInfo.name,
         phone: shippingInfo.phone,
         payment_method: payment,
-        payment_details: payment === "Bank" ? paymentAccount : null
+        payment_details: payment === "Bank" ? paymentAccount : null,
+        
+        // Send direct item details if applicable
+        direct_item: directItem ? {
+            product_id: directItem.product_id,
+            quantity: directItem.quantity,
+            size: directItem.size,
+            color: directItem.color
+        } : null
       };
 
       const data = await embeddedAuthFetch("/checkout", {
@@ -101,7 +147,15 @@ const Checkout = () => {
 
       console.log("Order placed successfully:", data.order);
       
-      clearCart(); 
+      // 1. Save the total BEFORE clearing the cart/state
+      setFinalAmountPaid(currentOrderTotal);
+
+      // 2. Clear cart ONLY if it was a cart checkout
+      if (!directItem) {
+          clearCart(); 
+      }
+      
+      // 3. Show success screen
       setOrderPlaced(true);
 
     } catch (error) {
@@ -112,63 +166,59 @@ const Checkout = () => {
     }
   };
 
-  const total = cartItems.reduce((sum, item) => {
-    const productInfo = item.product || {}; 
-    const price = productInfo.discount 
-        ? productInfo.price * (1 - productInfo.discount / 100) 
-        : productInfo.price;
-    return sum + price * (item.quantity || 0);
-  }, 0);
-  
-  const shippingFee = 150.00;
-  const orderTotal = total + shippingFee;
-
-  if (cartItems.length === 0 && !orderPlaced) {
+  // EMPTY STATE (Only show if NOT direct buy and NO order placed)
+  if (checkoutItems.length === 0 && !orderPlaced) {
     return (
-        <div className="checkout-empty">
-            <div className="empty-icon"><FaStore /></div>
-            <h2>Your bag is empty</h2>
-            <p>Fill it with exclusive styles before checking out.</p>
-            <button className="co-btn-primary" onClick={() => navigate("/products")}>
-                Return to Shop
-            </button>
+        <div className="checkout-page">
+            <div className="checkout-empty">
+                <div className="empty-icon"><FaStore /></div>
+                <h2>Your bag is empty</h2>
+                <p>Fill it with exclusive styles before checking out.</p>
+                <button className="co-btn-primary" onClick={() => navigate("/products")}>
+                    Return to Shop
+                </button>
+            </div>
         </div>
     );
   }
 
+  // SUCCESS STATE
   if (orderPlaced) {
     return (
-      <div className="checkout-success">
-        <div className="success-card">
-          <div className="success-icon"><FaCheckCircle /></div>
-          <h2>Order Confirmed</h2>
-          <p className="success-msg">
-            Thank you, <strong>{shippingInfo.name}</strong>. Your order has been received and is being processed.
-          </p>
+      <div className="checkout-page">
+        <div className="checkout-success">
+            <div className="success-card">
+            <div className="success-icon"><FaCheckCircle /></div>
+            <h2>Order Confirmed</h2>
+            <p className="success-msg">
+                Thank you, <strong>{shippingInfo.name}</strong>. Your order has been received.
+            </p>
 
-          <div className="order-receipt">
-            <div className="receipt-row">
-                <span>Payment Method</span>
-                <strong>{payment === "COD" ? "Cash on Delivery" : "Bank Transfer"}</strong>
+            <div className="order-receipt">
+                <div className="receipt-row">
+                    <span>Payment Method</span>
+                    <strong>{payment === "COD" ? "Cash on Delivery" : "Bank Transfer"}</strong>
+                </div>
+                <div className="receipt-row">
+                    <span>Estimated Delivery</span>
+                    <strong>3–5 Business Days</strong>
+                </div>
+                <div className="receipt-total">
+                    <span>Amount Paid</span>
+                    {/* FIX: Display the saved final total (including shipping) */}
+                    <span>₱{finalAmountPaid.toLocaleString()}</span>
+                </div>
             </div>
-            <div className="receipt-row">
-                <span>Estimated Delivery</span>
-                <strong>3–5 Business Days</strong>
-            </div>
-            <div className="receipt-total">
-                <span>Amount Paid</span>
-                <span>₱{orderTotal.toLocaleString()}</span>
-            </div>
-          </div>
 
-          <div className="success-buttons">
-            <button className="co-btn-secondary" onClick={() => navigate("/products")}>
-              Continue Shopping
-            </button>
-            <button className="co-btn-primary" onClick={() => navigate("/home")}>
-              Back to Home
-            </button>
-          </div>
+            <div className="success-buttons">
+                <button className="co-btn-secondary" onClick={() => navigate("/products")}>
+                Continue Shopping
+                </button>
+                <button className="co-btn-primary" onClick={() => navigate("/home")}>
+                Back to Home
+                </button>
+            </div>
+            </div>
         </div>
       </div>
     );
@@ -182,7 +232,7 @@ const Checkout = () => {
         <div className="checkout-container">
             
             <button className="checkout-back" onClick={() => navigate(-1)}>
-                <FaLongArrowAltLeft /> Back to Cart
+                <FaLongArrowAltLeft /> {directItem ? "Back to Product" : "Back to Cart"}
             </button>
             
             <h1 className="checkout-title">Secure Checkout</h1>
@@ -262,7 +312,7 @@ const Checkout = () => {
 
                             {payment === "Bank" && (
                                 <div className="info-box bank-box">
-                                    <p className="bank-label">Transfer Amount: <strong>₱{orderTotal.toLocaleString()}</strong></p>
+                                    <p className="bank-label">Transfer Amount: <strong>₱{currentOrderTotal.toLocaleString()}</strong></p>
                                     <div className="bank-details">
                                         <p><strong>BDO:</strong> 0012-3456-7890 (Soleair Inc.)</p>
                                         <p><strong>GCash:</strong> 0917-123-4567 (Billing)</p>
@@ -284,14 +334,14 @@ const Checkout = () => {
                 {/* --- RIGHT COLUMN: SUMMARY --- */}
                 <div className="checkout-sidebar">
                     <div className="co-summary-card">
-                        <h3>Order Summary</h3>
+                        <h3>Order Summary {directItem && "(Direct Buy)"}</h3>
                         
                         <div className="co-items-scroll">
-                            {cartItems.map((item) => {
+                            {checkoutItems.map((item, idx) => {
                                 const productInfo = item.product || {};
                                 const price = productInfo.discount ? (productInfo.price * (1 - productInfo.discount / 100)) : productInfo.price;
                                 return (
-                                    <div key={item.id} className="co-summary-item">
+                                    <div key={idx} className="co-summary-item">
                                         <div className="co-img-box">
                                             <img src={productInfo.image} alt={productInfo.name} />
                                             <span className="co-qty-badge">{item.quantity}</span>
@@ -321,7 +371,7 @@ const Checkout = () => {
 
                         <div className="co-row total">
                             <span>Total</span>
-                            <span>₱{orderTotal.toLocaleString()}</span>
+                            <span>₱{currentOrderTotal.toLocaleString()}</span>
                         </div>
 
                         <button 
@@ -329,7 +379,7 @@ const Checkout = () => {
                             onClick={handlePlaceOrder} 
                             disabled={loading}
                         >
-                            {loading ? "Processing..." : `Pay ₱${orderTotal.toLocaleString()}`}
+                            {loading ? "Processing..." : `Pay ₱${currentOrderTotal.toLocaleString()}`}
                         </button>
 
                         <div className="co-security">

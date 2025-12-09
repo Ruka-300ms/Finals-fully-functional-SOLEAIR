@@ -9,8 +9,10 @@ import AccountPage from "./pages/AccountPage";
 import Checkout from "./pages/Checkout";
 import Footer from "./components/Footer/Footer";
 import Login from "./pages/Login";
-import Register from "./pages/Register"; // <--- IMPORT THIS
+import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Product & Cart pages
 import ProductList from "./pages/ProductList";
@@ -23,19 +25,21 @@ import "./App.css";
 function AppContent() {
   const location = useLocation();
 
-  // Hide Navbar & Footer on login, admin, AND register pages
+  // Hide Navbar & Footer on auth pages and admin
   const hideNavAndFooter =
     location.pathname === "/login" || 
     location.pathname === "/admin" || 
-    location.pathname === "/register"; // <--- ADDED THIS
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password" || 
+    location.pathname === "/reset-password";
 
   // Footer only on homepage and about page
   const showFooter =
-    location.pathname === "/" || location.pathname === "/about";
+    location.pathname === "/" || location.pathname === "/home" || location.pathname === "/about";
 
   return (
     <>
-      {/* Hide Navbar on /login, /register and /admin */}
+      {/* Hide Navbar on auth/admin pages */}
       {!hideNavAndFooter && <Navbar />}
 
       <Routes>
@@ -52,7 +56,11 @@ function AppContent() {
         
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} /> {/* <--- ADDED THIS */}
+        <Route path="/register" element={<Register />} />
+        
+        {/* Password Reset Routes */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
